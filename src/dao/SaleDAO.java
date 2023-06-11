@@ -10,6 +10,7 @@ package dao;
  * @author HP
  */
 import java.util.List;
+import model.Report;
 import model.Sale;
 
 public interface SaleDAO {
@@ -25,4 +26,6 @@ public interface SaleDAO {
     List<Sale> getAllSales();
 
     Sale getSaleBySaleNumber(String saleNumber);
+    
+    List<Report> getSaleRecieptBySaleNumber(String saleNumber);
 }

@@ -18,6 +18,7 @@ import java.util.List;
 import model.Customer;
 import model.Sale;
 import dao.SaleDAO;
+import model.Report;
 
 /**
  *
@@ -198,6 +199,43 @@ public class SaleDAOImpl implements SaleDAO {
             e.printStackTrace();
         }
         return sale;
+    }
+
+    @Override
+    public List<Report> getSaleRecieptBySaleNumber(String saleNumber) {
+        PreparedStatement stmt = null;
+        ResultSet resultSet = null;
+        List<Report> list = new ArrayList<>();
+        String query = "SELECT s.sale_number,s.rec_number,s.created_by,s.`amount_paid`,\n"
+                + "s.`amount_remaining`,s.`tax_amount`,s.`total_amount`,\n"
+                + "c.name AS 'customer',p.name AS 'product',\n"
+                + "sd.quantity,sd.unit,sd.price FROM sale s\n"
+                + "INNER JOIN sale_details sd ON s.`sale_id`=sd.`sale_id`\n"
+                + "INNER JOIN product p ON sd.`product_id`=p.`product_id`\n"
+                + "INNER JOIN customers c ON s.`customer_id`=c.`customer_id`\n"
+                + "WHERE s.`sale_number`=?";
+        try {
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, saleNumber);
+            resultSet = stmt.executeQuery();
+            while (resultSet.next()) {
+                Report report = new Report();
+                report.setOrderNumber(resultSet.getString("sale_number"));
+                report.setRecNumber(resultSet.getString("rec_number"));
+                report.setCreatedBy(resultSet.getString("created_by"));
+                report.setAmountPaid(resultSet.getDouble("amount_paid"));
+                report.setAmountRemaining(resultSet.getDouble("amount_remaining"));
+                report.setTotalAmount(resultSet.getDouble("total_amount"));
+                report.setPrice(resultSet.getDouble("price"));
+                report.setQuantity(resultSet.getInt("quantity"));
+                report.setCustomer(resultSet.getString("customer"));
+                report.setProduct(resultSet.getString("product"));
+                list.add(report);
+             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

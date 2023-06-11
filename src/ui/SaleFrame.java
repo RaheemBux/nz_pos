@@ -34,8 +34,27 @@ import model.Sale;
 import dao.SaleDAO;
 import dao.StockDAO;
 import daoimpl.StockDAOImpl;
+import dbmanager.DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.SaleDetails;
 import model.Stock;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRResultSetDataSource;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JRDesignQuery;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.util.JRLoader;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.view.JasperViewer;
 
 /**
  *
@@ -211,6 +230,7 @@ public class SaleFrame extends javax.swing.JFrame {
             saleDetailsTable.setModel(saleDetailsTableModel);
         }
     }
+    //private List<>
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -700,7 +720,7 @@ public class SaleFrame extends javax.swing.JFrame {
                     product.setQuantity(product.getQuantity() - quantity);
                     productDAO.updateProduct(product);
                     saleDetailsDAO.addSaleDetails(saleDetails);
-                    
+
                     Stock stock = new Stock();
                     stock.setProduct(product);
                     stock.setSold(quantity);
@@ -715,8 +735,25 @@ public class SaleFrame extends javax.swing.JFrame {
                 ledgerDAO.addLedger(ledger);*/
 
                 fillTable();
-                clearFields();
+
+                try {
+                  
+
+                    JasperDesign jdesign = JRXmlLoader.load("report4.jrxml");
+                    Map<String, Object> parameters = new HashMap<>();
+                    parameters.put("order_num", saleNumberField.getText());
+
+                    JasperReport jreport = JasperCompileManager.compileReport(jdesign);
+                    JasperPrint jprint = JasperFillManager.fillReport(jreport, parameters, DBConnection.getConnection());
+
+                    JasperViewer.viewReport(jprint);
+                } catch (Exception ex) {
+                    Logger.getLogger(SaleFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
             }
+            clearFields();
+
         }
 
     }//GEN-LAST:event_addBtnActionPerformed
@@ -845,16 +882,24 @@ public class SaleFrame extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SaleFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SaleFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SaleFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(SaleFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
