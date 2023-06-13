@@ -3,6 +3,9 @@
 	<property name="ireport.zoom" value="1.0"/>
 	<property name="ireport.x" value="0"/>
 	<property name="ireport.y" value="0"/>
+	<parameter name="order_num" class="java.lang.String">
+		<defaultValueExpression><![CDATA[]]></defaultValueExpression>
+	</parameter>
 	<queryString>
 		<![CDATA[SELECT s.sale_number,s.rec_number,s.created_by,s.`amount_paid`,
 s.`amount_remaining`,s.`tax_amount`,s.`total_amount`,
@@ -11,7 +14,7 @@ sd.quantity,sd.unit,sd.price FROM sale s
 INNER JOIN sale_details sd ON s.`sale_id`=sd.`sale_id`
 INNER JOIN product p ON sd.`product_id`=p.`product_id`
 INNER JOIN customers c ON s.`customer_id`=c.`customer_id`
-WHERE s.`sale_number`='NM-20230610001729';]]>
+WHERE s.`sale_number`=$P{order_num};]]>
 	</queryString>
 	<field name="sale_number" class="java.lang.String">
 		<fieldDescription><![CDATA[]]></fieldDescription>

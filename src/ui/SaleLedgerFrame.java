@@ -17,7 +17,7 @@ import daoimpl.ProductDAOImpl;
 import daoimpl.PurchaseDAOImpl;
 import daoimpl.PurchaseDetailsDAOImpl;
 import daoimpl.SaleDetailsDAOImpl;
-import dto.PurchaseLedgerDTO;
+import dto.TransactionDTO;
 //import java.awt.Color;
 import java.util.List;
 import java.util.Objects;
@@ -116,11 +116,11 @@ public class SaleLedgerFrame extends javax.swing.JFrame {
         customerCombo.setSelectedIndex(0);
     }
 
-    public void fillTable(List<PurchaseLedgerDTO> ledgers) {
+    public void fillTable(List<TransactionDTO> ledgers) {
         double grandTotal = 0;
         defaultTableModel = new DefaultTableModel(columns, 0);
-        for (PurchaseLedgerDTO l : ledgers) {
-            Object row[] = {l.getPurchaseId(), l.getPurchaseNumber(),l.getPurchaseDate(),
+        for (TransactionDTO l : ledgers) {
+            Object row[] = {l.getTransactionId(), l.getOrderNumber(),l.getTranscationDate(),
                 l.getRecieptNo(),l.getCustomerName(), l.getTaxAmount(), l.getTotalAmount(),
                 l.getAmountPaid(), l.getAmountRemaining()};
 
@@ -320,7 +320,7 @@ public class SaleLedgerFrame extends javax.swing.JFrame {
         String name = customerCombo.getSelectedItem().toString();
         if (!"All".equals(name)) {
             Customer customer = customerDAO.getCustomerByName(name);
-            List<PurchaseLedgerDTO> customerLedgers = ledgerDAO.getAllPurchasesLedgerByCustomerId(customer.getCustomerId());
+            List<TransactionDTO> customerLedgers = ledgerDAO.getAllPurchasesLedgerByCustomerId(customer.getCustomerId());
             if (Objects.nonNull(customerLedgers) && customerLedgers.size() > 0) {
                 fillTable(customerLedgers);
             } else {

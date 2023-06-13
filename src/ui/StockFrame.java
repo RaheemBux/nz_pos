@@ -19,7 +19,7 @@ import daoimpl.PurchaseDAOImpl;
 import daoimpl.PurchaseDetailsDAOImpl;
 import daoimpl.SaleDetailsDAOImpl;
 import daoimpl.StockDAOImpl;
-import dto.PurchaseLedgerDTO;
+import dto.TransactionDTO;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.RowFilter;
@@ -222,7 +222,7 @@ public class StockFrame extends javax.swing.JFrame {
         String name = customerCombo.getSelectedItem().toString();
         if (!"All".equals(name)) {
             Customer customer = customerDAO.getCustomerByName(name);
-            List<PurchaseLedgerDTO> customerLedgers = ledgerDAO.getAllPurchasesLedgerByCustomerId(customer.getCustomerId());
+            List<TransactionDTO> customerLedgers = ledgerDAO.getAllPurchasesLedgerByCustomerId(customer.getCustomerId());
             if (Objects.nonNull(customerLedgers) && customerLedgers.size() > 0) {
                 fillTable();
             } else {

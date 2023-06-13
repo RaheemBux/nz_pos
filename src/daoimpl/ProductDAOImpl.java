@@ -138,4 +138,22 @@ public class ProductDAOImpl implements ProductDAO {
             return null;
         }
     }
+
+    @Override
+    public double getPriceByProductName(String productName) {
+        String sql = "SELECT sd.price FROM sale_details sd INNER JOIN product p\n"
+                + "ON sd.`product_id`=p.`product_id`\n"
+                + "WHERE p.`name`=? ORDER BY sd.`created_date` DESC LIMIT 1;";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, productName);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getDouble("price");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

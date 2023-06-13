@@ -18,6 +18,7 @@ import java.util.List;
 import model.Customer;
 import model.Sale;
 import dao.SaleDAO;
+import dto.TransactionDTO;
 import model.Report;
 
 /**
@@ -231,11 +232,74 @@ public class SaleDAOImpl implements SaleDAO {
                 report.setCustomer(resultSet.getString("customer"));
                 report.setProduct(resultSet.getString("product"));
                 list.add(report);
-             }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public List<TransactionDTO> getAllSales1() {
+        List<TransactionDTO> sales = new ArrayList<>();
+        // SQL query
+        String sql = "SELECT s.`sale_id`,c.name AS 'customer_name',s.sale_number,s.rec_number,s.sale_date,\n"
+                + "p.name AS 'product_name',sd.quantity,sd.unit,sd.price,sd.quantity*sd.price AS 'total',\n"
+                + "s.amount_paid,s.amount_remaining,s.tax_amount,s.total_amount,s.payment_type\n"
+                + "FROM sale s INNER JOIN sale_details sd \n"
+                + "ON s.`sale_id`=sd.`sale_id`\n"
+                + "INNER JOIN product p ON p.`product_id`= sd.`product_id`\n"
+                + "INNER JOIN customers c ON s.`customer_id`= c.`customer_id` \n"
+                + "ORDER BY s.`created_date` DESC";
+
+        try (PreparedStatement statement = conn.prepareStatement(sql)) {
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                TransactionDTO transactionDto = new TransactionDTO();
+
+                // Set the values from the result set to the DTO object
+                transactionDto.setTransactionId(rs.getInt("sale_id"));
+                transactionDto.setOrderNumber(rs.getString("sale_number"));
+                transactionDto.setTranscationDate(rs.getDate("sale_date"));
+                transactionDto.setRecieptNo(rs.getString("rec_number"));
+                transactionDto.setProductName(rs.getString("product_name"));
+                transactionDto.setCustomerName(rs.getString("customer_name"));
+                transactionDto.setQuantity(rs.getInt("quantity"));
+                transactionDto.setUnit(rs.getString("unit"));
+                transactionDto.setPrice(rs.getDouble("price"));
+                transactionDto.setTotalAmount(rs.getDouble("total"));
+                transactionDto.setAmountPaid(rs.getDouble("amount_paid"));
+                transactionDto.setAmountRemaining(rs.getDouble("amount_remaining"));
+                transactionDto.setTaxAmount(rs.getDouble("tax_amount"));
+                transactionDto.setGrandAmount(rs.getDouble("total_amount"));
+                transactionDto.setPaymentType(rs.getString("payment_type"));
+
+                // Add the DTO object to the list
+                sales.add(transactionDto);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return sales;
+    }
+
+    @Override
+    public boolean isReceiptNoExists(String receiptNo) {
+        PreparedStatement stmt = null;
+        ResultSet resultSet = null;
+        String query = "SELECT rec_number FROM sale WHERE rec_number = ? limit 1";
+        try {
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, receiptNo);
+            resultSet = stmt.executeQuery();
+            if (resultSet.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

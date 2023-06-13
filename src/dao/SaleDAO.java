@@ -9,6 +9,7 @@ package dao;
  *
  * @author HP
  */
+import dto.TransactionDTO;
 import java.util.List;
 import model.Report;
 import model.Sale;
@@ -26,6 +27,10 @@ public interface SaleDAO {
     List<Sale> getAllSales();
 
     Sale getSaleBySaleNumber(String saleNumber);
-    
+
     List<Report> getSaleRecieptBySaleNumber(String saleNumber);
+
+    List<TransactionDTO> getAllSales1();
+
+    boolean isReceiptNoExists(String receiptNo);
 }

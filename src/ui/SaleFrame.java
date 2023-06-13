@@ -35,26 +35,22 @@ import dao.SaleDAO;
 import dao.StockDAO;
 import daoimpl.StockDAOImpl;
 import dbmanager.DBConnection;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import dto.TransactionDTO;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.UIManager;
 import model.SaleDetails;
 import model.Stock;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRResultSetDataSource;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.design.JRDesignQuery;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.util.JRLoader;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.view.JasperViewer;
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 /**
  *
@@ -65,7 +61,9 @@ public class SaleFrame extends javax.swing.JFrame {
     /**
      * Creates new form RegisterFrame
      */
-    Object columns[] = {"Id", "Customer", "Sale-Date", "Sale-No", "Slip No", "Total-Amount", "Paid", "Remaning", "Tax", "Payment Type"};
+    Object columns[] = {"Id", "Customer", "Sale-Date", "Sale-No", "Slip No",
+        "Product", "Quantity", "Unit", "Price", "Product-Total",
+        "Grand-Total", "Paid", "Remaning", "Tax", "Payment Type"};
 
     DefaultTableModel defaultTableModel = new DefaultTableModel(columns, 0);
 
@@ -76,6 +74,8 @@ public class SaleFrame extends javax.swing.JFrame {
     DefaultTableModel saleDetailsTableModel = new DefaultTableModel(saleDetailsColumns, 0);
 
     private static Integer saleId = 0;
+    private int vatClickCount = 0;
+
 
     PurchaseDAO purchaseDAO = new PurchaseDAOImpl();
     CustomerDAO customerDAO = new CustomerDAOImpl();
@@ -89,12 +89,15 @@ public class SaleFrame extends javax.swing.JFrame {
 
     public SaleFrame() {
         initComponents();
+        validateSlipLbl.setVisible(false);
         saleDateField.setDate(new java.util.Date());
         saleNumberField.setText(getPurchaseCode());
         editBtn.setEnabled(false);
         addBtn.setEnabled(false);
+        AutoCompleteDecorator.decorate(productCombo);
+        AutoCompleteDecorator.decorate(vendorCombo);
         // deleteBtn.setEnabled(false);
-        fillTable();
+        fillSalesTable();
         fillCustomerCombo();
         fillProductCombo();
         // setSize(930, 820);
@@ -185,6 +188,7 @@ public class SaleFrame extends javax.swing.JFrame {
         remainingAmountField.setText("0.0");
         cartTableModel.setRowCount(0);
         taxAmountField.setText("0.0");
+        vatClickCount=0;
 
     }
 
@@ -218,6 +222,34 @@ public class SaleFrame extends javax.swing.JFrame {
         saleTable.getColumnModel().getColumn(0).setWidth(0);
         saleTable.getColumnModel().getColumn(0).setMinWidth(0);
         saleTable.getColumnModel().getColumn(0).setMaxWidth(0);
+
+    }
+
+    public void fillSalesTable() {
+        //instance table model
+        defaultTableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                //all cells false
+                return false;
+            }
+        };
+        List<TransactionDTO> sales = saleDAO.getAllSales1();
+        for (TransactionDTO t : sales) {
+            Object row[] = {t.getTransactionId(), t.getCustomerName(), t.getTranscationDate(),
+                t.getOrderNumber(), t.getRecieptNo(), t.getProductName(),
+                t.getQuantity(), t.getUnit(), t.getPrice(), t.getTotalAmount(),
+                t.getGrandAmount(), t.getAmountPaid(), t.getAmountRemaining(),
+                t.getTaxAmount(), t.getPaymentType()};
+            defaultTableModel.addRow(row);
+            saleTable.setModel(defaultTableModel);
+        }
+        saleTable.getColumnModel().getColumn(0).setWidth(0);
+        saleTable.getColumnModel().getColumn(0).setMinWidth(0);
+        saleTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        saleTable.getColumnModel().getColumn(3).setWidth(180);
+        saleTable.getColumnModel().getColumn(3).setMinWidth(180);
+        saleTable.getColumnModel().getColumn(3).setMaxWidth(180);
 
     }
 
@@ -283,6 +315,7 @@ public class SaleFrame extends javax.swing.JFrame {
         saleDetailsTable = new javax.swing.JTable();
         taxAmountField = new javax.swing.JLabel();
         headerLbl2 = new javax.swing.JLabel();
+        validateSlipLbl = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -313,7 +346,15 @@ public class SaleFrame extends javax.swing.JFrame {
             new String [] {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         saleTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 saleTableMouseClicked(evt);
@@ -501,6 +542,9 @@ public class SaleFrame extends javax.swing.JFrame {
         headerLbl2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         headerLbl2.setText("Cart Products Detail");
 
+        validateSlipLbl.setForeground(new java.awt.Color(255, 0, 0));
+        validateSlipLbl.setText("Slip No already please different");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -536,43 +580,39 @@ public class SaleFrame extends javax.swing.JFrame {
                                         .addComponent(totalLbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                     .addComponent(remainingLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(33, 33, 33)))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(addItem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(saleDateField, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
-                                .addComponent(vendorCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(productCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(totalField, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(unitCombo, 0, 290, Short.MAX_VALUE)
-                                .addComponent(quantityField)
-                                .addComponent(priceField, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
-                                .addComponent(recieptNo)
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addComponent(paymentTypeCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGap(11, 11, 11))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(vatCheck, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(taxAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addComponent(saleNumberField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(paidAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(remainingAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(addItem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(saleDateField, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
+                            .addComponent(vendorCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(productCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 287, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(totalField, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(unitCombo, 0, 290, Short.MAX_VALUE)
+                            .addComponent(quantityField)
+                            .addComponent(priceField, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
+                            .addComponent(recieptNo)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(paymentTypeCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(11, 11, 11))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(vatCheck, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(taxAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(saleNumberField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(paidAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(remainingAmountField, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(validateSlipLbl, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addGap(71, 71, 71)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 660, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1308, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 660, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(62, 62, 62)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 586, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addGap(449, 449, 449)
                                 .addComponent(serachLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -584,7 +624,11 @@ public class SaleFrame extends javax.swing.JFrame {
                         .addComponent(headerLbl2, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(headerLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 265, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(211, 211, 211))))
+                        .addGap(211, 211, 211))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1400, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -607,7 +651,9 @@ public class SaleFrame extends javax.swing.JFrame {
                                 .addComponent(saleDateLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(saleNumberLbl, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(29, 29, 29)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(validateSlipLbl)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(pNumberLbl1, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(recieptNo, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -668,7 +714,7 @@ public class SaleFrame extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(editBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(addBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(66, Short.MAX_VALUE))
+                        .addContainerGap(59, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(24, 24, 24)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -737,7 +783,6 @@ public class SaleFrame extends javax.swing.JFrame {
                 fillTable();
 
                 try {
-                  
 
                     JasperDesign jdesign = JRXmlLoader.load("report4.jrxml");
                     Map<String, Object> parameters = new HashMap<>();
@@ -791,7 +836,8 @@ public class SaleFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_unitComboActionPerformed
 
     private void productComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productComboActionPerformed
-        // TODO add your handling code here:
+        double lastPrice = productDAO.getPriceByProductName(productCombo.getSelectedItem().toString());
+        priceField.setText(String.valueOf(lastPrice));
     }//GEN-LAST:event_productComboActionPerformed
 
     private void paymentTypeComboActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_paymentTypeComboActionPerformed
@@ -799,7 +845,8 @@ public class SaleFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_paymentTypeComboActionPerformed
 
     private void vatCheckActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_vatCheckActionPerformed
-        if (vatCheck.isEnabled()) {
+        vatClickCount+=1;
+        if (vatCheck.isSelected() && vatClickCount==1) {
             Double total = Double.parseDouble(totalField.getText());
             Double taxAmount = total * 0.05;
             taxAmountField.setText(taxAmount.toString());
@@ -843,7 +890,13 @@ public class SaleFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_cartTableMouseClicked
 
     private void recieptNoKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_recieptNoKeyReleased
-        // TODO add your handling code here:
+        boolean exists = saleDAO.isReceiptNoExists(recieptNo.getText());
+        if (exists) {
+            validateSlipLbl.setVisible(true);
+            //JOptionPane.showMessageDialog(this, "Slip No Already Exists!");
+        } else {
+            validateSlipLbl.setVisible(false);
+        }
     }//GEN-LAST:event_recieptNoKeyReleased
 
     private void addItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addItemActionPerformed
@@ -878,28 +931,18 @@ public class SaleFrame extends javax.swing.JFrame {
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            /* for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
 
                 }
-            }
-        } catch (ClassNotFoundException ex) {
+            }*/
+            UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
+        } catch (Exception ex) {
             java.util.logging.Logger.getLogger(SaleFrame.class
                     .getName()).log(java.util.logging.Level.SEVERE, null, ex);
 
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
-
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
-
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(SaleFrame.class
-                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
@@ -1207,6 +1250,7 @@ public class SaleFrame extends javax.swing.JFrame {
     private javax.swing.JLabel totalField;
     private javax.swing.JLabel totalLbl;
     private javax.swing.JComboBox<String> unitCombo;
+    private javax.swing.JLabel validateSlipLbl;
     private javax.swing.JCheckBox vatCheck;
     private javax.swing.JComboBox<String> vendorCombo;
     // End of variables declaration//GEN-END:variables

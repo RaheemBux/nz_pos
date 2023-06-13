@@ -25,4 +25,6 @@ public interface ProductDAO {
     Product getProductByName(String productName);
 
     List<Product> getAllProducts();
+    
+    double getPriceByProductName(String productName);
 }

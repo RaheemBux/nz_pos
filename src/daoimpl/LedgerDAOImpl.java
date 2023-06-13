@@ -8,7 +8,7 @@ package daoimpl;
 import dao.CustomerDAO;
 import dao.LedgerDAO;
 import dbmanager.DBConnection;
-import dto.PurchaseLedgerDTO;
+import dto.TransactionDTO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -189,8 +189,8 @@ public class LedgerDAOImpl implements LedgerDAO {
     }
 
     @Override
-    public List<PurchaseLedgerDTO> getAllPurchasesLedgers() {
-        List<PurchaseLedgerDTO> purchaseLedgerList = new ArrayList<>();
+    public List<TransactionDTO> getAllPurchasesLedgers() {
+        List<TransactionDTO> purchaseLedgerList = new ArrayList<>();
         // SQL query
         String sql = "SELECT p.`purchase_id`,p.purchase_number,p.purchase_date,p.rec_number, c.name, c.contact1, p.amount_paid, p.amount_remaining,\n"
                 + "p.tax_amount,p.total_amount  FROM purchase p \n"
@@ -201,12 +201,12 @@ public class LedgerDAOImpl implements LedgerDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                PurchaseLedgerDTO purchaseLedger = new PurchaseLedgerDTO();
+                TransactionDTO purchaseLedger = new TransactionDTO();
 
                 // Set the values from the result set to the DTO object
-                purchaseLedger.setPurchaseId(rs.getInt("purchase_id"));
-                purchaseLedger.setPurchaseNumber(rs.getString("purchase_number"));
-                purchaseLedger.setPurchaseDate(rs.getDate("purchase_date"));
+                purchaseLedger.setTransactionId(rs.getInt("purchase_id"));
+                purchaseLedger.setOrderNumber(rs.getString("purchase_number"));
+                purchaseLedger.setTranscationDate(rs.getDate("purchase_date"));
                 purchaseLedger.setRecieptNo(rs.getString("rec_number"));
                 purchaseLedger.setCustomerName(rs.getString("name"));
                 purchaseLedger.setContact(rs.getString("contact1"));
@@ -225,8 +225,8 @@ public class LedgerDAOImpl implements LedgerDAO {
     }
 
     @Override
-    public List<PurchaseLedgerDTO> getAllPurchasesLedgerByCustomerId(int customerId) {
-        List<PurchaseLedgerDTO> purchaseLedgerList = new ArrayList<>();
+    public List<TransactionDTO> getAllPurchasesLedgerByCustomerId(int customerId) {
+        List<TransactionDTO> purchaseLedgerList = new ArrayList<>();
         // SQL query
         String sql = "SELECT p.purchase_number, c.name, c.contact1, pd.name, p.quantity, p.unit, p.price, "
                 + "p.amount_paid, p.amount_remaining, p.tax_amount, p.total_amount FROM purchase p "
@@ -239,10 +239,10 @@ public class LedgerDAOImpl implements LedgerDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                PurchaseLedgerDTO purchaseLedger = new PurchaseLedgerDTO();
+                TransactionDTO purchaseLedger = new TransactionDTO();
 
                 // Set the values from the result set to the DTO object
-                purchaseLedger.setPurchaseNumber(rs.getString("purchase_number"));
+                purchaseLedger.setOrderNumber(rs.getString("purchase_number"));
                 purchaseLedger.setCustomerName(rs.getString("name"));
                 purchaseLedger.setContact(rs.getString("contact1"));
                 purchaseLedger.setProductName(rs.getString("name"));
@@ -264,8 +264,8 @@ public class LedgerDAOImpl implements LedgerDAO {
     }
 
     @Override
-    public List<PurchaseLedgerDTO> getAllSaleLedgers() {
-        List<PurchaseLedgerDTO> saleLedgerList = new ArrayList<>();
+    public List<TransactionDTO> getAllSaleLedgers() {
+        List<TransactionDTO> saleLedgerList = new ArrayList<>();
         // SQL query
         String sql = "SELECT s.`sale_id`,s.sale_number,s.sale_date,s.rec_number, c.name, c.contact1, "
                 + "s.amount_paid, s.amount_remaining,\n"
@@ -277,12 +277,12 @@ public class LedgerDAOImpl implements LedgerDAO {
             ResultSet rs = statement.executeQuery();
 
             while (rs.next()) {
-                PurchaseLedgerDTO purchaseLedger = new PurchaseLedgerDTO();
+                TransactionDTO purchaseLedger = new TransactionDTO();
 
                 // Set the values from the result set to the DTO object
-                purchaseLedger.setPurchaseId(rs.getInt("sale_id"));
-                purchaseLedger.setPurchaseNumber(rs.getString("sale_number"));
-                purchaseLedger.setPurchaseDate(rs.getDate("sale_date"));
+                purchaseLedger.setTransactionId(rs.getInt("sale_id"));
+                purchaseLedger.setOrderNumber(rs.getString("sale_number"));
+                purchaseLedger.setTranscationDate(rs.getDate("sale_date"));
                 purchaseLedger.setRecieptNo(rs.getString("rec_number"));
                 purchaseLedger.setCustomerName(rs.getString("name"));
                 purchaseLedger.setContact(rs.getString("contact1"));

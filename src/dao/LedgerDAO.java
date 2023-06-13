@@ -5,7 +5,7 @@
  */
 package dao;
 
-import dto.PurchaseLedgerDTO;
+import dto.TransactionDTO;
 import java.util.List;
 import model.Ledger;
 
@@ -21,7 +21,7 @@ public interface LedgerDAO {
     List<Ledger> getAllLedgers();
     List<Ledger> getAllLedgersByCustomerId(int customerId);
     List<Ledger> getAllLedgersByOrderNumber(String orderNumber);
-    List<PurchaseLedgerDTO> getAllPurchasesLedgers();
-    List<PurchaseLedgerDTO> getAllPurchasesLedgerByCustomerId(int customerId);
-    List<PurchaseLedgerDTO> getAllSaleLedgers();
+    List<TransactionDTO> getAllPurchasesLedgers();
+    List<TransactionDTO> getAllPurchasesLedgerByCustomerId(int customerId);
+    List<TransactionDTO> getAllSaleLedgers();
 }
