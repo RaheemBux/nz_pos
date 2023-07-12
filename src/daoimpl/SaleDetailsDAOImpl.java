@@ -25,8 +25,8 @@ import dao.SaleDAO;
  *
  * @author HP
  */
-public class SaleDetailsDAOImpl implements SaleDetailsDAO{
-    
+public class SaleDetailsDAOImpl implements SaleDetailsDAO {
+
     private Connection connection = DBConnection.getConnection();
     private ProductDAO productDAO = new ProductDAOImpl();
     private PurchaseDAO purchaseDAO = new PurchaseDAOImpl();
@@ -55,7 +55,7 @@ public class SaleDetailsDAOImpl implements SaleDetailsDAO{
     @Override
     public boolean updateSaleDetails(SaleDetails saleDetails) {
         String query = "UPDATE sale_details SET quantity = ?, unit = ?, price = ?, "
-                + "purchase_id = ?, product_id = ?, last_modified_date=now(),"
+                + "sale_id = ?, product_id = ?, last_modified_date=now(),"
                 + "last_modified_by=? WHERE sale_details_id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -91,7 +91,7 @@ public class SaleDetailsDAOImpl implements SaleDetailsDAO{
 
     @Override
     public SaleDetails getSaleDetailsById(int saleDetailsId) {
-         String query = "SELECT * FROM sale_details WHERE sale_details_id = ?";
+        String query = "SELECT * FROM sale_details WHERE sale_details_id = ?";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setInt(1, saleDetailsId);
@@ -109,7 +109,7 @@ public class SaleDetailsDAOImpl implements SaleDetailsDAO{
 
     @Override
     public List<SaleDetails> getAllSaleDetails() {
-       List<SaleDetails> saleDetailsList = new ArrayList<>();
+        List<SaleDetails> saleDetailsList = new ArrayList<>();
         String query = "SELECT * FROM sale_details";
 
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -143,6 +143,7 @@ public class SaleDetailsDAOImpl implements SaleDetailsDAO{
 
         return saleDetailsList;
     }
+
     // Helper method to create PurchaseDetails object from ResultSet
     private SaleDetails createSaleDetailsFromResultSet(ResultSet resultSet) throws SQLException {
         SaleDetails saleDetails = new SaleDetails();
@@ -161,5 +162,25 @@ public class SaleDetailsDAOImpl implements SaleDetailsDAO{
         return saleDetails;
     }
 
-    
+    @Override
+    public SaleDetails getSaleDetailsIdBySaleNumberAndProductName(String saleNumber, String productName) {
+        String query = "SELECT sd.sale_details_id,sd.`sale_id`,sd.`product_id`,sd.`quantity`,sd.`price`,sd.`unit`\n"
+                + "FROM sale s INNER JOIN sale_details sd ON s.`sale_id`=sd.`sale_id`\n"
+                + "INNER JOIN product p ON p.`product_id`=sd.`product_id` \n"
+                + "WHERE s.`sale_number`=? AND p.`name`=?";
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, saleNumber);
+            statement.setString(2, productName);
+
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return createSaleDetailsFromResultSet(resultSet);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

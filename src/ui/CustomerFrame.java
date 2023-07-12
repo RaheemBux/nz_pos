@@ -222,7 +222,8 @@ public class CustomerFrame extends javax.swing.JFrame {
         customerLbl.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
         customerLbl.setText("Customer Type");
 
-        customerCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "CUSTOMER_VENDOR", "CUSTOMER", "VENDOR", " " }));
+        customerCombo.setFont(new java.awt.Font("Tahoma", 1, 13)); // NOI18N
+        customerCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "CUSTOMER_VENDOR", "CUSTOMER", "VENDOR" }));
         customerCombo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 customerComboActionPerformed(evt);

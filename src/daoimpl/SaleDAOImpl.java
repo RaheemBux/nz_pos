@@ -6,6 +6,7 @@
 package daoimpl;
 
 import contants.PaymentType;
+import contants.Unit;
 import dao.CustomerDAO;
 import dao.ProductDAO;
 import dbmanager.DBConnection;

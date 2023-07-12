@@ -328,12 +328,14 @@
     </Component>
     <Component class="javax.swing.JComboBox" name="customerCombo">
       <Properties>
+        <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
+          <Font name="Tahoma" size="13" style="1"/>
+        </Property>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="4">
+          <StringArray count="3">
             <StringItem index="0" value="CUSTOMER_VENDOR"/>
             <StringItem index="1" value="CUSTOMER"/>
             <StringItem index="2" value="VENDOR"/>
-            <StringItem index="3" value=" "/>
           </StringArray>
         </Property>
       </Properties>

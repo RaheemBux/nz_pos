@@ -8,7 +8,9 @@ package ui;
 import dao.UserDAO;
 import daoimpl.UserDAOImpl;
 import java.util.Objects;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.UIManager;
 import model.User;
 
 /**
@@ -19,12 +21,14 @@ public class Login extends javax.swing.JFrame {
     
     
     UserDAO userDAO = new UserDAOImpl();
+    public static String createdBy = "";
 
     /**
      * Creates new form Test
      */
     public Login() {
         initComponents();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     /**
@@ -69,20 +73,10 @@ public class Login extends javax.swing.JFrame {
 
         logoLbl.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/logo.png"))); // NOI18N
 
-        passwordField.setText("jPasswordField1");
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(540, 540, 540)
-                .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(logoLbl)
-                .addGap(451, 451, 451))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(0, 320, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -91,6 +85,15 @@ public class Login extends javax.swing.JFrame {
                     .addComponent(passwordLbl)
                     .addComponent(passwordField))
                 .addGap(280, 280, 280))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(logoLbl)
+                        .addGap(451, 451, 451))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 272, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(478, 478, 478))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -105,9 +108,9 @@ public class Login extends javax.swing.JFrame {
                 .addComponent(passwordLbl)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(passwordField, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 92, Short.MAX_VALUE)
+                .addGap(36, 36, 36)
                 .addComponent(loginBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(120, 120, 120))
+                .addContainerGap(176, Short.MAX_VALUE))
         );
 
         pack();
@@ -122,6 +125,7 @@ public class Login extends javax.swing.JFrame {
        String password = String.valueOf(passwordField.getPassword());
        User user = userDAO.login(email, password);
        if(Objects.nonNull(user) && email.equals(user.getEmail()) && password.equals(user.getPassword())) {
+           Login.createdBy = user.getName();
            Home home = new Home();
            home.setVisible(true); 
            this.dispose();
@@ -157,6 +161,21 @@ public class Login extends javax.swing.JFrame {
         }
         //</editor-fold>
         //</editor-fold>
+        
+        try {
+            /* for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+
+                }
+            }*/
+            UIManager.setLookAndFeel("com.jtattoo.plaf.texture.TextureLookAndFeel");
+        } catch (Exception ex) {
+            java.util.logging.Logger.getLogger(SaleFrame.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
+        }
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {

@@ -25,4 +25,6 @@ public interface SaleDetailsDAO {
     List<SaleDetails> getAllSaleDetails();
     
     List<SaleDetails> getSaleDetailsBySaleId(int saleId);
+    
+    SaleDetails getSaleDetailsIdBySaleNumberAndProductName(String saleNumber,String productName);
 }
